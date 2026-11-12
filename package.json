@@ -17,7 +17,8 @@
     "inspect:raw": "node scripts/inspect-raw.mts",
     "load:db": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/load-db.mts",
     "check:db": "node scripts/db-check.mjs",
-    "load:owners": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/load-owners.mts"
+    "load:owners": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/load-owners.mts",
+    "vercel:env": "node scripts/vercel-env-sync.mjs"
   },
   "dependencies": {
     "exceljs": "^4.4.0",
