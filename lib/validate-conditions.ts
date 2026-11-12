@@ -16,6 +16,13 @@ export const conditionsSchema = z.object(
       .finite("최소 면적은 숫자여야 해요.")
       .min(0, "최소 면적은 0 이상이어야 해요.")
       .max(MAX_AREA, `최소 면적은 ${MAX_AREA.toLocaleString("ko-KR")}㎡ 이하여야 해요.`),
+    // 최대 면적은 선택 사항이다. 없으면 상한 없음.
+    maxArea: z
+      .number("최대 면적은 숫자여야 해요.")
+      .finite("최대 면적은 숫자여야 해요.")
+      .min(0, "최대 면적은 0 이상이어야 해요.")
+      .max(MAX_AREA, `최대 면적은 ${MAX_AREA.toLocaleString("ko-KR")}㎡ 이하여야 해요.`)
+      .optional(),
     landCategories: z
       .array(z.enum(LAND_CATEGORIES, "지원하지 않는 지목이에요."), "지목은 목록으로 보내 주세요.")
       .min(1, "지목을 하나 이상 골라 주세요.")
@@ -58,7 +65,8 @@ export function validateConditions(input: unknown): ConditionsValidation {
     const messages = [...new Set(parsed.error.issues.map((issue) => issue.message))].slice(0, 3);
     return { ok: false, message: messages.join(" ") };
   }
-  const { minArea, landCategories, zones, owners, districts, excludeShapes } = parsed.data;
+  const { minArea, maxArea, landCategories, zones, owners, districts, excludeShapes } = parsed.data;
+  if (maxArea !== undefined && maxArea < minArea) return { ok: false, message: "최대 면적은 최소 면적보다 작을 수 없어요." };
   const uniqueShapes = excludeShapes ? [...new Set(excludeShapes)] : [];
   const uniqueOwners = owners ? [...new Set(owners)] : [];
   const uniqueDistricts = districts ? [...new Set(districts)] : [];
@@ -66,6 +74,7 @@ export function validateConditions(input: unknown): ConditionsValidation {
     ok: true,
     conditions: {
       minArea,
+      ...(maxArea !== undefined ? { maxArea } : {}),
       landCategories: [...new Set(landCategories)],
       zones: [...new Set(zones)],
       // 소유구분을 고르지 않았으면 이 항목을 아예 넣지 않는다 (이전과 같은 모양 유지)

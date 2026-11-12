@@ -30,6 +30,13 @@ interface Props {
   /** 기본 조건으로 실행할 때 뺄 땅모양 (비어 있으면 땅모양은 따지지 않음) */
   excludeShapes: string[];
   onExcludeShapesChange: (shapes: string[]) => void;
+  /** 면적 범위 입력칸 (빈칸이면 최소는 기본값, 최대는 제한 없음) */
+  minAreaText: string;
+  maxAreaText: string;
+  onMinAreaTextChange: (text: string) => void;
+  onMaxAreaTextChange: (text: string) => void;
+  /** 면적 칸에 잘못된 값이 있을 때의 안내 */
+  areaError: string | null;
   /** "다시 입력"에서 입력칸으로 돌아갈 때 쓴다 */
   textareaRef: RefObject<HTMLTextAreaElement | null>;
 }
@@ -46,7 +53,7 @@ function Dice() {
   );
 }
 
-export function ConditionPanel({ text, onTextChange, onConvert, converting, running, onRunDefault, ownerPreset, onOwnerPresetChange, districts, onDistrictsChange, excludeShapes, onExcludeShapesChange, textareaRef }: Props) {
+export function ConditionPanel({ text, onTextChange, onConvert, converting, running, onRunDefault, ownerPreset, onOwnerPresetChange, districts, onDistrictsChange, excludeShapes, onExcludeShapesChange, minAreaText, maxAreaText, onMinAreaTextChange, onMaxAreaTextChange, areaError, textareaRef }: Props) {
   const length = textLength(text.trim());
   const tooLong = length > MAX_TEXT_LENGTH;
   const canConvert = length >= 1 && !tooLong && !converting;
@@ -79,7 +86,7 @@ export function ConditionPanel({ text, onTextChange, onConvert, converting, runn
         />
         <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
           <p id="condition-text-help" className="text-xs text-[var(--ink-soft)]">
-            면적·지목·용도지역·소유구분·지역(구)·땅모양 제외(예: 강남구 국유지, 부정형 제외)를 쓸 수 있어요. 말하지 않은 항목은 기본 조건을 써요. 입력한 문장은 조건을 해석하려고 OpenAI로 전송돼요. 개인정보는 적지 마세요.
+            면적(예: 1500 이상 3000 이하)·지목·용도지역·소유구분·지역(구)·땅모양 제외(예: 강남구 국유지, 부정형 제외)를 쓸 수 있어요. 말하지 않은 항목은 기본 조건을 써요. 입력한 문장은 조건을 해석하려고 OpenAI로 전송돼요. 개인정보는 적지 마세요.
           </p>
           <p className={`text-xs tabular-nums ${tooLong ? "font-bold text-[var(--coral)]" : "text-[var(--ink-soft)]"}`} aria-live="polite">
             {tooLong ? `${MAX_TEXT_LENGTH}자를 ${length - MAX_TEXT_LENGTH}자 넘었어요` : `${length} / ${MAX_TEXT_LENGTH}자`}
@@ -94,13 +101,35 @@ export function ConditionPanel({ text, onTextChange, onConvert, converting, runn
       <div className="mt-5 border-t-[2.5px] border-dashed border-ink pt-4">
         <p className="nb-jua text-lg">또는 기본 조건으로 바로 실행</p>
         <dl className="mt-2 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
-          {defaultLines.map(({ key, label, value }) => (
+          {defaultLines
+            .filter(({ key }) => key !== "minArea")
+            .map(({ key, label, value }) => (
             <div key={key} className="contents">
               <dt className="text-[var(--ink-soft)]">{label}</dt>
               <dd className="font-bold">{value}</dd>
             </div>
           ))}
         </dl>
+
+        {/* 면적 범위: 최소(기본 1,000㎡)~최대(기본 제한 없음) */}
+        <fieldset className="mt-4">
+          <legend className="text-sm font-bold">
+            면적 범위(㎡) <span className="font-normal text-[var(--ink-soft)]">— 비우면 최소 1,000 이상, 최대 제한 없음</span>
+          </legend>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <label className="sr-only" htmlFor="min-area">최소 면적(㎡)</label>
+            <input id="min-area" type="number" inputMode="decimal" min={0} step="any" value={minAreaText} onChange={(e) => onMinAreaTextChange(e.target.value)} placeholder="최소 (기본 1000)" className="nb-input w-36" aria-invalid={areaError !== null} />
+            <span aria-hidden="true">~</span>
+            <label className="sr-only" htmlFor="max-area">최대 면적(㎡)</label>
+            <input id="max-area" type="number" inputMode="decimal" min={0} step="any" value={maxAreaText} onChange={(e) => onMaxAreaTextChange(e.target.value)} placeholder="최대 (제한 없음)" className="nb-input w-36" aria-invalid={areaError !== null} />
+            <span className="text-sm text-[var(--ink-soft)]">㎡ (최소 이상, 최대 이하)</span>
+          </div>
+          {areaError && (
+            <p role="alert" className="nb-alert nb-alert-error mt-2">
+              {areaError}
+            </p>
+          )}
+        </fieldset>
 
         {/* 지역(구): 땅 타일. 여러 개 고를 수 있고, 아무것도 안 고르면 서울 전체 */}
         <fieldset className="mt-4">

@@ -9,7 +9,7 @@ import { MAX_TEXT_LENGTH } from "./types";
 
 // 값만 바꿔 쓰는 AI 결과 (기본: 아무것도 말하지 않은 ok)
 function ai(overrides: Partial<AiResult> = {}): AiResult {
-  return { status: "ok", minArea: null, landCategories: null, zones: null, owners: null, districts: null, excludeShapes: null, message: "", ...overrides };
+  return { status: "ok", minArea: null, maxArea: null, landCategories: null, zones: null, owners: null, districts: null, excludeShapes: null, message: "", ...overrides };
 }
 
 describe("validateText — 1~200자 검사", () => {
@@ -199,5 +199,31 @@ describe("interpretAiResult — 땅모양 제외 (지형형상 추가 후)", () 
   it("땅모양을 말하지 않으면 conditions에 excludeShapes가 없음", () => {
     const r = interpretAiResult(ai({ minArea: 2000 }));
     expect(r.status === "ok" && "excludeShapes" in r.conditions).toBe(false);
+  });
+});
+
+describe("interpretAiResult — 최대 면적 (면적 범위 추가 후)", () => {
+  it("'5천㎡ 이하'처럼 상한만 말해도 조건이 되고, 최소 면적은 기본값, 안내에 범위가 들어감", () => {
+    const r = interpretAiResult(ai({ maxArea: 5000 }));
+    expect(r.status).toBe("ok");
+    if (r.status !== "ok") return;
+    expect(r.conditions).toEqual({ ...DEFAULT_CONDITIONS, maxArea: 5000 });
+    expect(r.defaulted).toEqual(["minArea", "landCategories", "zones"]);
+    expect(r.message).toContain("면적 1,000㎡ 이상 ~ 5,000㎡ 이하(기본값)");
+  });
+
+  it("하한과 상한을 함께 말하면 둘 다 반영", () => {
+    const r = interpretAiResult(ai({ minArea: 1500, maxArea: 3000 }));
+    expect(r.status === "ok" && r.conditions.minArea === 1500 && r.conditions.maxArea === 3000).toBe(true);
+  });
+
+  it("최대가 최소보다 작은 말은 그대로 실행하지 않고 다시 적게 한다", () => {
+    const r = interpretAiResult(ai({ minArea: 3000, maxArea: 1000 }));
+    expect(r).toEqual({ status: "need_clarification", message: "최대 면적은 최소 면적보다 작을 수 없어요." });
+  });
+
+  it("최대 면적을 말하지 않으면 conditions에 maxArea가 없음", () => {
+    const r = interpretAiResult(ai({ minArea: 2000 }));
+    expect(r.status === "ok" && "maxArea" in r.conditions).toBe(false);
   });
 });

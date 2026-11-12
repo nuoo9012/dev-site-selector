@@ -126,3 +126,24 @@ describe("validateConditions — 땅모양 제외 (지형형상 추가 후)", ()
     expect(validateConditions({ ...DEFAULT_CONDITIONS, excludeShapes: ["동그란"] })).toEqual({ ok: false, message: "지원하지 않는 땅모양이에요." });
   });
 });
+
+describe("validateConditions — 최대 면적 (면적 범위 추가 후)", () => {
+  it("최대 면적이 없으면 이전과 같은 모양", () => {
+    expect(validateConditions(DEFAULT_CONDITIONS)).toEqual({ ok: true, conditions: DEFAULT_CONDITIONS });
+  });
+
+  it("최소 이하가 아닌 최대 면적은 통과 (같은 값도 허용)", () => {
+    expect(validateConditions({ ...DEFAULT_CONDITIONS, maxArea: 5000 })).toEqual({ ok: true, conditions: { ...DEFAULT_CONDITIONS, maxArea: 5000 } });
+    expect(validateConditions({ ...DEFAULT_CONDITIONS, maxArea: 1000 }).ok).toBe(true);
+  });
+
+  it("최대가 최소보다 작으면 한국어 안내와 함께 거절", () => {
+    expect(validateConditions({ ...DEFAULT_CONDITIONS, maxArea: 500 })).toEqual({ ok: false, message: "최대 면적은 최소 면적보다 작을 수 없어요." });
+  });
+
+  it("음수·숫자 아님·너무 큰 값은 거절", () => {
+    expect(validateConditions({ ...DEFAULT_CONDITIONS, maxArea: -1 }).ok).toBe(false);
+    expect(validateConditions({ ...DEFAULT_CONDITIONS, maxArea: "많이" }).ok).toBe(false);
+    expect(validateConditions({ ...DEFAULT_CONDITIONS, maxArea: 1e12 }).ok).toBe(false);
+  });
+});

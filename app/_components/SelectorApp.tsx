@@ -62,6 +62,10 @@ export function SelectorApp() {
   const [districts, setDistricts] = useState<string[]>([]);
   // 기본 조건으로 실행할 때 뺄 땅모양 (비어 있으면 땅모양은 따지지 않음)
   const [excludeShapes, setExcludeShapes] = useState<string[]>([]);
+  // 기본 조건으로 실행할 때 쓸 면적 범위 (빈칸이면 최소는 기본값 1,000㎡, 최대는 제한 없음)
+  const [minAreaText, setMinAreaText] = useState("");
+  const [maxAreaText, setMaxAreaText] = useState("");
+  const [areaError, setAreaError] = useState<string | null>(null);
   const [parse, setParse] = useState<ParseState>({ status: "idle" });
   const [state, setState] = useState<RunState>({ status: "idle" });
   const [download, setDownload] = useState<DownloadState>({ status: "idle" });
@@ -148,10 +152,24 @@ export function SelectorApp() {
   // 기본 조건으로 바로 실행. 이전 변환 결과는 지운다.
   function runDefault() {
     resetParse();
+    // 면적 칸 검사: 숫자이고 0 이상이며 최대가 최소보다 작지 않아야 한다
+    const minArea = minAreaText.trim() === "" ? DEFAULT_CONDITIONS.minArea : Number(minAreaText);
+    const maxArea = maxAreaText.trim() === "" ? undefined : Number(maxAreaText);
+    if (!Number.isFinite(minArea) || minArea < 0 || (maxArea !== undefined && (!Number.isFinite(maxArea) || maxArea < 0))) {
+      setAreaError("면적은 0 이상의 숫자로 적어 주세요.");
+      return;
+    }
+    if (maxArea !== undefined && maxArea < minArea) {
+      setAreaError("최대 면적은 최소 면적보다 작을 수 없어요.");
+      return;
+    }
+    setAreaError(null);
     const owners = [...OWNER_PRESETS[ownerPreset]];
     // 소유구분·지역을 고르지 않았으면(전체) 이전과 같은 모양으로 보낸다
     void runSelection({
       ...DEFAULT_CONDITIONS,
+      minArea,
+      ...(maxArea !== undefined ? { maxArea } : {}),
       ...(owners.length > 0 ? { owners } : {}),
       ...(districts.length > 0 ? { districts } : {}),
       ...(excludeShapes.length > 0 ? { excludeShapes } : {}),
@@ -219,6 +237,11 @@ export function SelectorApp() {
         onDistrictsChange={setDistricts}
         excludeShapes={excludeShapes}
         onExcludeShapesChange={setExcludeShapes}
+        minAreaText={minAreaText}
+        maxAreaText={maxAreaText}
+        onMinAreaTextChange={setMinAreaText}
+        onMaxAreaTextChange={setMaxAreaText}
+        areaError={areaError}
         textareaRef={textareaRef}
       />
       <ConfirmCard

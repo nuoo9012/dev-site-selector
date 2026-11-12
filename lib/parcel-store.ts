@@ -66,12 +66,13 @@ export async function findParcels(conditions: Conditions): Promise<Parcel[]> {
          from parcels
         where (land_category is null or land_category = any($1::text[]))
           and (area is null or area >= $2)
+          and (area is null or $8::float8 is null or area <= $8::float8)
           and (zone1 is null or zone1 = any($3::text[]))
           and (cardinality($5::text[]) = 0 or owners is null or owners && $5::text[])
           and (cardinality($6::text[]) = 0 or sigungu = any($6::text[]))
           and (cardinality($7::text[]) = 0 or land_shape is null or not (land_shape = any($7::text[])))
         limit $4`,
-      [conditions.landCategories, conditions.minArea, conditions.zones, MAX_FETCH_ROWS + 1, conditions.owners ?? [], conditions.districts ?? [], conditions.excludeShapes ?? []],
+      [conditions.landCategories, conditions.minArea, conditions.zones, MAX_FETCH_ROWS + 1, conditions.owners ?? [], conditions.districts ?? [], conditions.excludeShapes ?? [], conditions.maxArea ?? null],
     );
     if (result.rows.length > MAX_FETCH_ROWS) throw new TooManyResultsError();
     return result.rows.map(toParcel);

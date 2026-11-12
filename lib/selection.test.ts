@@ -263,3 +263,28 @@ describe("땅모양 제외 조건 (지형형상 추가 후)", () => {
     expect(judgeParcel(parcel({ landShape: null, owners: null }), c)).toEqual({ result: "unknown", missing: ["소유구분", "지형형상"] });
   });
 });
+
+describe("면적 범위 조건 (최대 면적 추가 후)", () => {
+  const range: Conditions = { ...DEFAULT_CONDITIONS, minArea: 1500, maxArea: 3000 };
+
+  it("최대 면적이 없으면 상한 없음", () => {
+    expect(judgeParcel(parcel({ area: 9_999_999 }), DEFAULT_CONDITIONS)).toEqual({ result: "match" });
+  });
+
+  it("범위 안(경계 포함)은 후보, 최소 미만·최대 초과는 제외", () => {
+    expect(judgeParcel(parcel({ area: 1500 }), range)).toEqual({ result: "match" });
+    expect(judgeParcel(parcel({ area: 3000 }), range)).toEqual({ result: "match" });
+    expect(judgeParcel(parcel({ area: 2200 }), range)).toEqual({ result: "match" });
+    expect(judgeParcel(parcel({ area: 1499.9 }), range).result).toBe("exclude");
+    expect(judgeParcel(parcel({ area: 3000.1 }), range).result).toBe("exclude");
+  });
+
+  it("면적을 모르는 필지는 추측하지 않고 확인 필요(면적)", () => {
+    expect(judgeParcel(parcel({ area: null }), range)).toEqual({ result: "unknown", missing: ["면적"] });
+  });
+
+  it("선별 근거에 범위가 적힘 (최대가 없으면 기존 문구 그대로)", () => {
+    expect(buildReason(parcel({ area: 2000 }), range)).toBe("면적 2,000㎡(1,500~3,000) · 지목 대 · 준주거지역");
+    expect(buildReason(parcel({ area: 2000 }), DEFAULT_CONDITIONS)).toBe("면적 2,000㎡(≥1,000) · 지목 대 · 준주거지역");
+  });
+});

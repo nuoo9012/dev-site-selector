@@ -33,6 +33,7 @@ export function judgeParcel(parcel: Parcel, conditions: Conditions): Judgement {
   // 1. 알려진 값 중 하나라도 안 맞으면 제외 (다른 값이 비어 있어도 제외)
   if (landCategory !== null && !conditions.landCategories.includes(landCategory)) return { result: "exclude" };
   if (area !== null && area < conditions.minArea) return { result: "exclude" };
+  if (area !== null && conditions.maxArea !== undefined && area > conditions.maxArea) return { result: "exclude" };
   if (zone1 !== null && !conditions.zones.includes(zone1)) return { result: "exclude" };
   // 땅모양 제외: 모양을 아는 필지가 제외 대상 모양이면 제외 (모양을 모르는 필지는 아래에서 확인 필요)
   const excludedShapes = conditions.excludeShapes ?? [];
@@ -72,7 +73,7 @@ export function compareParcels(a: Parcel, b: Parcel): number {
  */
 export function buildReason(parcel: Parcel, conditions: Conditions): string {
   const parts = [
-    `면적 ${numberFormat.format(parcel.area ?? 0)}㎡(≥${numberFormat.format(conditions.minArea)})`,
+    `면적 ${numberFormat.format(parcel.area ?? 0)}㎡(${conditions.maxArea === undefined ? `≥${numberFormat.format(conditions.minArea)}` : `${numberFormat.format(conditions.minArea)}~${numberFormat.format(conditions.maxArea)}`})`,
     `지목 ${parcel.landCategory ?? ""}`,
     parcel.zone1 ?? "",
   ];

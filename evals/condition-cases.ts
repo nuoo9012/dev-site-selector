@@ -12,6 +12,8 @@ export interface OkCase {
   text: string;
   status: "ok";
   minArea: number | "default";
+  /** 기대하는 최대 면적. 적지 않으면 "상한을 말하지 않았으므로 조건에 최대 면적이 없어야 함" */
+  maxArea?: number;
   landCategories: string[] | "default";
   zones: string[] | "default";
   /** 기대하는 소유구분. 적지 않으면 "소유구분을 말하지 않았으므로 조건에 소유구분이 없어야 함" */
@@ -63,6 +65,10 @@ export const CONDITION_CASES: ConditionCase[] = [
   // ───── 땅모양 제외 2 (2026-11-12 지형형상 추가 때 더함) ─────
   { text: "부정형 땅은 빼고 준주거 1000㎡ 이상", status: "ok", minArea: 1000, landCategories: "default", zones: ["준주거지역"], excludeShapes: ["부정형"], note: "땅모양 제외" },
   { text: "도봉구에서 부정형이랑 자루형 땅 제외", status: "ok", minArea: "default", landCategories: "default", zones: "default", districts: ["도봉구"], excludeShapes: ["부정형", "자루형"], note: "구 + 땅모양 둘 제외" },
+
+  // ───── 면적 상한 2 (2026-11-12 면적 범위 추가 때 더함) ─────
+  { text: "면적 1500 이상 3000 이하 준주거", status: "ok", minArea: 1500, maxArea: 3000, landCategories: "default", zones: ["준주거지역"], note: "하한과 상한을 함께" },
+  { text: "5천㎡ 미만인 땅", status: "ok", minArea: "default", maxArea: 5000, landCategories: "default", zones: "default", note: "상한만 말함 (미만도 이하로 처리)" },
 
   // ───── 애매함 3 (숫자가 필요한데 없음 → 되묻기) ─────
   { text: "너무 작지 않은 땅", status: "need_clarification", note: "크기 기준이 숫자로 없음" },

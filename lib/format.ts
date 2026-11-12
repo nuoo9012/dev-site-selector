@@ -18,6 +18,12 @@ export function formatBaseDates(dates: Record<string, string>): string {
     .join(" / ")}`;
 }
 
+/** 면적 조건 문구: "1,000㎡ 이상" 또는 최대 면적이 있으면 "1,000㎡ 이상 ~ 5,000㎡ 이하" */
+export function areaRangeText(conditions: Pick<Conditions, "minArea" | "maxArea">): string {
+  const min = `${conditions.minArea.toLocaleString("ko-KR")}㎡ 이상`;
+  return conditions.maxArea === undefined ? min : `${min} ~ ${conditions.maxArea.toLocaleString("ko-KR")}㎡ 이하`;
+}
+
 /** 조건 한 항목을 사람이 읽는 줄로 (예: { key: "minArea", label: "면적", value: "1,000㎡ 이상" }) */
 export interface ConditionLine {
   key: ConditionKey;
@@ -28,7 +34,7 @@ export interface ConditionLine {
 /** 조건을 항목별 줄로 바꾼다. 화면의 조건 표시와 엑셀 상단 문구가 같은 글을 쓰도록 한곳에서 만든다. */
 export function describeConditions(conditions: Conditions): ConditionLine[] {
   return [
-    { key: "minArea", label: "면적", value: `${conditions.minArea.toLocaleString("ko-KR")}㎡ 이상` },
+    { key: "minArea", label: "면적", value: areaRangeText(conditions) },
     { key: "landCategories", label: "지목", value: conditions.landCategories.join(", ") },
     { key: "zones", label: "용도지역", value: conditions.zones.join(", ") },
     // 지역·소유구분·땅모양 제외는 골랐을 때만 보여준다

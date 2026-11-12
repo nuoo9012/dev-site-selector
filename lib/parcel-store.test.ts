@@ -103,6 +103,16 @@ describe("findParcels", () => {
     expect((query.mock.calls[1] as [string, unknown[]])[1][6]).toEqual([]);
   });
 
+  it("최대 면적은 변수로 넘기고, 없으면 null을 보내 상한을 걸지 않음", async () => {
+    query.mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({ rows: [] });
+    await findParcels({ ...DEFAULT_CONDITIONS, maxArea: 5000 });
+    await findParcels(DEFAULT_CONDITIONS);
+    const [sql, withMax] = query.mock.calls[0] as [string, unknown[]];
+    expect(sql).toContain("area is null or $8::float8 is null or area <= $8::float8");
+    expect(withMax[7]).toBe(5000);
+    expect((query.mock.calls[1] as [string, unknown[]])[1][7]).toBeNull();
+  });
+
   it("DB의 토지이용상황·지형형상이 필지에 담김", async () => {
     query.mockResolvedValueOnce({ rows: [{ ...row(4), land_use: "상업용", land_shape: "정방형" }] });
     const [parcel] = await findParcels(DEFAULT_CONDITIONS);

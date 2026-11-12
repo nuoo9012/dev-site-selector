@@ -39,6 +39,8 @@ export function judge(c: ConditionCase, r: ParseConditionResponse | "error"): { 
       problems.push(`${label} ${got.join(",")} (기대 ${want.join(",")})`);
     }
   }
+  // 최대 면적: 말하지 않았으면 조건에 없어야 한다
+  if (r.conditions.maxArea !== expected.maxArea) problems.push(`최대 면적 ${r.conditions.maxArea ?? "(없음)"} (기대 ${expected.maxArea ?? "(없음)"})`);
   // 소유구분: 말하지 않았으면 조건에 없어야 하고, 말했으면 같은 목록이어야 한다
   const gotOwners = r.conditions.owners ?? [];
   const wantOwners = expected.owners ?? [];

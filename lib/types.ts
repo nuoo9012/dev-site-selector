@@ -91,6 +91,8 @@ export interface ParcelData {
 export interface Conditions {
   /** 최소 면적 ㎡ (이 값 이상) */
   minArea: number;
+  /** 최대 면적 ㎡ (이 값 이하, 같은 값 포함). 없으면 상한 없음 */
+  maxArea?: number;
   /** 허용 지목 (이 중 하나) */
   landCategories: string[];
   /** 허용 용도지역 (주된 용도지역이 이 중 하나) */
