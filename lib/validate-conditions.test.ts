@@ -111,3 +111,18 @@ describe("validateConditions — 지역(구) (서울 확장 후 추가)", () => 
     expect(DISTRICTS).toHaveLength(25);
   });
 });
+
+describe("validateConditions — 땅모양 제외 (지형형상 추가 후)", () => {
+  it("땅모양이 없거나 비어 있으면 이전과 같은 모양", () => {
+    expect(validateConditions({ ...DEFAULT_CONDITIONS, excludeShapes: [] })).toEqual({ ok: true, conditions: DEFAULT_CONDITIONS });
+  });
+
+  it("허용 목록의 땅모양은 통과하고 중복은 합침", () => {
+    const r = validateConditions({ ...DEFAULT_CONDITIONS, excludeShapes: ["부정형", "부정형", "자루형"] });
+    expect(r).toEqual({ ok: true, conditions: { ...DEFAULT_CONDITIONS, excludeShapes: ["부정형", "자루형"] } });
+  });
+
+  it("목록에 없는 모양은 한국어 안내와 함께 거절", () => {
+    expect(validateConditions({ ...DEFAULT_CONDITIONS, excludeShapes: ["동그란"] })).toEqual({ ok: false, message: "지원하지 않는 땅모양이에요." });
+  });
+});

@@ -31,7 +31,8 @@ export function describeConditions(conditions: Conditions): ConditionLine[] {
     { key: "minArea", label: "면적", value: `${conditions.minArea.toLocaleString("ko-KR")}㎡ 이상` },
     { key: "landCategories", label: "지목", value: conditions.landCategories.join(", ") },
     { key: "zones", label: "용도지역", value: conditions.zones.join(", ") },
-    // 지역·소유구분은 골랐을 때만 보여준다
+    // 지역·소유구분·땅모양 제외는 골랐을 때만 보여준다
+    ...(conditions.excludeShapes && conditions.excludeShapes.length > 0 ? [{ key: "excludeShapes" as const, label: "땅모양 제외", value: conditions.excludeShapes.join(", ") }] : []),
     ...(conditions.districts && conditions.districts.length > 0 ? [{ key: "districts" as const, label: "지역", value: conditions.districts.join(", ") }] : []),
     ...(conditions.owners && conditions.owners.length > 0 ? [{ key: "owners" as const, label: "소유구분", value: conditions.owners.join(", ") }] : []),
   ];

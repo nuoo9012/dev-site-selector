@@ -123,6 +123,12 @@ button.nb-tile[aria-pressed="true"] {
   color: #fff;
 }
 
+/* 땅모양 제외처럼 켜고 끄는 말 버튼 (눌려 있으면 산호색) */
+.nb-chip-toggle[aria-pressed="true"] {
+  background: var(--coral);
+  color: #fff;
+}
+
 /* ───── 버튼 ───── */
 .nb-btn {
   display: inline-flex;

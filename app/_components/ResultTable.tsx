@@ -99,7 +99,7 @@ function Body({ state, download, onDownload }: Props) {
             </p>
           )}
           <div className="nb-table-wrap max-h-[70vh]">
-            <table className="w-full min-w-[1000px] border-collapse text-left text-sm">
+            <table className="w-full min-w-[1160px] border-collapse text-left text-sm">
               <caption className="sr-only">
                 개발 대상지 후보 목록 (면적이 큰 순서, 상위 {result.candidates.length}건)
               </caption>
@@ -111,6 +111,8 @@ function Body({ state, download, onDownload }: Props) {
                   <th scope="col" className="px-3 py-2 text-right font-bold">면적(㎡)</th>
                   <th scope="col" className="px-3 py-2 font-bold">용도지역</th>
                   <th scope="col" className="min-w-[130px] px-3 py-2 font-bold">소유구분</th>
+                  <th scope="col" className="px-3 py-2 font-bold">토지이용상황</th>
+                  <th scope="col" className="px-3 py-2 font-bold">지형형상</th>
                   <th scope="col" className="min-w-[260px] px-3 py-2 font-bold">선별 근거</th>
                 </tr>
               </thead>
@@ -123,6 +125,8 @@ function Body({ state, download, onDownload }: Props) {
                     <td className="px-3 py-2 text-right whitespace-nowrap tabular-nums">{areaFormat.format(c.area ?? 0)}</td>
                     <td className="px-3 py-2 whitespace-nowrap">{c.zone1}</td>
                     <td className="px-3 py-2">{ownerText(c) ?? "-"}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">{c.landUse ?? "-"}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">{c.landShape ?? "-"}</td>
                     <td className="px-3 py-2 text-[var(--ink-soft)]">{c.reason}</td>
                   </tr>
                 ))}

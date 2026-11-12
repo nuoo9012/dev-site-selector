@@ -228,3 +228,38 @@ describe("지역(구) 조건 (서울 확장 후 추가)", () => {
     expect(judgeParcel(parcel({ sigungu: "도봉구", owners: ["국유지"] }), both).result).toBe("exclude");
   });
 });
+
+describe("땅모양 제외 조건 (지형형상 추가 후)", () => {
+  const noIrregular: Conditions = { ...DEFAULT_CONDITIONS, excludeShapes: ["부정형"] };
+
+  it("땅모양 조건이 없으면 어떤 모양이든(모양을 몰라도) 후보", () => {
+    expect(judgeParcel(parcel({ landShape: "부정형" }), DEFAULT_CONDITIONS)).toEqual({ result: "match" });
+    expect(judgeParcel(parcel({ landShape: null }), DEFAULT_CONDITIONS)).toEqual({ result: "match" });
+  });
+
+  it("부정형 제외: 부정형은 제외, 다른 모양은 후보", () => {
+    expect(judgeParcel(parcel({ landShape: "부정형" }), noIrregular).result).toBe("exclude");
+    expect(judgeParcel(parcel({ landShape: "정방형" }), noIrregular)).toEqual({ result: "match" });
+    expect(judgeParcel(parcel({ landShape: "사다리형" }), noIrregular)).toEqual({ result: "match" });
+  });
+
+  it("여러 모양 제외", () => {
+    const c: Conditions = { ...DEFAULT_CONDITIONS, excludeShapes: ["부정형", "자루형"] };
+    expect(judgeParcel(parcel({ landShape: "자루형" }), c).result).toBe("exclude");
+    expect(judgeParcel(parcel({ landShape: "가로장방" }), c)).toEqual({ result: "match" });
+  });
+
+  it("모양을 모르는 필지(null·값 없음)는 추측하지 않고 확인 필요(지형형상)", () => {
+    expect(judgeParcel(parcel({ landShape: null }), noIrregular)).toEqual({ result: "unknown", missing: ["지형형상"] });
+    expect(judgeParcel(parcel(), noIrregular)).toEqual({ result: "unknown", missing: ["지형형상"] });
+  });
+
+  it("다른 조건이 안 맞으면 모양을 몰라도 제외가 먼저", () => {
+    expect(judgeParcel(parcel({ landShape: null, area: 500 }), noIrregular).result).toBe("exclude");
+  });
+
+  it("땅모양·소유구분이 모두 비어 있으면 둘 다 확인 필요에 적힘", () => {
+    const c: Conditions = { ...noIrregular, owners: ["국유지"] };
+    expect(judgeParcel(parcel({ landShape: null, owners: null }), c)).toEqual({ result: "unknown", missing: ["소유구분", "지형형상"] });
+  });
+});

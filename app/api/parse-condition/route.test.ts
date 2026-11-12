@@ -23,7 +23,7 @@ function post(body: unknown, raw = false): Promise<Response> {
   );
 }
 
-const noneSaid = { status: "ok", minArea: null, landCategories: null, zones: null, owners: null, districts: null, message: "" } as const;
+const noneSaid = { status: "ok", minArea: null, landCategories: null, zones: null, owners: null, districts: null, excludeShapes: null, message: "" } as const;
 
 beforeEach(() => {
   fakeAi.mockReset();

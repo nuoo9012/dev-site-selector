@@ -16,6 +16,8 @@ export const COL = {
   area: "A12", // 토지면적
   zone1: "A14", // 용도지역명1
   zone2: "A16", // 용도지역명2
+  landUse: "A18", // 토지이용상황명
+  landShape: "A22", // 지형형상명
   baseDate: "A26", // 데이터기준일자
 } as const;
 
@@ -120,6 +122,8 @@ export function toParcel(rec: Record<string, string>): { parcel: Parcel; baseDat
       area: areaOrNull(rec[COL.area]),
       zone1: textOrNull(rec[COL.zone1]),
       zone2: textOrNull(rec[COL.zone2]),
+      landUse: textOrNull(rec[COL.landUse]),
+      landShape: textOrNull(rec[COL.landShape]),
     },
     baseDate: rec[COL.baseDate] ?? "",
   };

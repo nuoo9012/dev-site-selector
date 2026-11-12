@@ -28,6 +28,8 @@ interface Row {
   zone2: string | null;
   owners: string[] | null;
   owner_agency: string | null;
+  land_use: string | null;
+  land_shape: string | null;
 }
 
 const toParcel = (r: Row): Parcel => ({
@@ -41,6 +43,8 @@ const toParcel = (r: Row): Parcel => ({
   zone2: r.zone2,
   owners: r.owners,
   ownerAgency: r.owner_agency,
+  landUse: r.land_use,
+  landShape: r.land_shape,
 });
 
 /** 접속 실패 등 DB 문제는 원래 내용을 숨기고 DbError로 바꾼다 */
@@ -58,15 +62,16 @@ function logAndWrap(error: unknown): never {
 export async function findParcels(conditions: Conditions): Promise<Parcel[]> {
   try {
     const result = await getPool().query<Row>(
-      `select pnu, sigungu, address, jibun, land_category, area, zone1, zone2, owners, owner_agency
+      `select pnu, sigungu, address, jibun, land_category, area, zone1, zone2, owners, owner_agency, land_use, land_shape
          from parcels
         where (land_category is null or land_category = any($1::text[]))
           and (area is null or area >= $2)
           and (zone1 is null or zone1 = any($3::text[]))
           and (cardinality($5::text[]) = 0 or owners is null or owners && $5::text[])
           and (cardinality($6::text[]) = 0 or sigungu = any($6::text[]))
+          and (cardinality($7::text[]) = 0 or land_shape is null or not (land_shape = any($7::text[])))
         limit $4`,
-      [conditions.landCategories, conditions.minArea, conditions.zones, MAX_FETCH_ROWS + 1, conditions.owners ?? [], conditions.districts ?? []],
+      [conditions.landCategories, conditions.minArea, conditions.zones, MAX_FETCH_ROWS + 1, conditions.owners ?? [], conditions.districts ?? [], conditions.excludeShapes ?? []],
     );
     if (result.rows.length > MAX_FETCH_ROWS) throw new TooManyResultsError();
     return result.rows.map(toParcel);

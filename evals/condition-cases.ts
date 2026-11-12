@@ -16,6 +16,8 @@ export interface OkCase {
   zones: string[] | "default";
   /** 기대하는 소유구분. 적지 않으면 "소유구분을 말하지 않았으므로 조건에 소유구분이 없어야 함" */
   owners?: string[];
+  /** 기대하는 제외 땅모양. 적지 않으면 "땅모양 제외를 말하지 않았으므로 조건에 없어야 함" */
+  excludeShapes?: string[];
   /** 기대하는 지역(구). 적지 않으면 "지역을 말하지 않았으므로 조건에 지역이 없어야 함" */
   districts?: string[];
   /** 면적 허용 오차(㎡) — "평" 단위 환산의 반올림 차이를 인정한다 */
@@ -57,6 +59,10 @@ export const CONDITION_CASES: ConditionCase[] = [
   // ───── 지역(구) 2 (2026-11-12 구 선택 추가 때 더함. "도봉구에 있는 것만 보여줘"는 지원 안 함에서 정상으로 옮김) ─────
   { text: "도봉구에 있는 것만 보여줘", status: "ok", minArea: "default", landCategories: "default", zones: "default", districts: ["도봉구"], note: "구 한정 (이전에는 지원 안 함이었음)" },
   { text: "강남이랑 서초에서 면적 2천㎡ 이상 국유지", status: "ok", minArea: 2000, landCategories: "default", zones: "default", owners: ["국유지"], districts: ["강남구", "서초구"], note: "구 둘 + 소유구분 + 줄임말" },
+
+  // ───── 땅모양 제외 2 (2026-11-12 지형형상 추가 때 더함) ─────
+  { text: "부정형 땅은 빼고 준주거 1000㎡ 이상", status: "ok", minArea: 1000, landCategories: "default", zones: ["준주거지역"], excludeShapes: ["부정형"], note: "땅모양 제외" },
+  { text: "도봉구에서 부정형이랑 자루형 땅 제외", status: "ok", minArea: "default", landCategories: "default", zones: "default", districts: ["도봉구"], excludeShapes: ["부정형", "자루형"], note: "구 + 땅모양 둘 제외" },
 
   // ───── 애매함 3 (숫자가 필요한데 없음 → 되묻기) ─────
   { text: "너무 작지 않은 땅", status: "need_clarification", note: "크기 기준이 숫자로 없음" },

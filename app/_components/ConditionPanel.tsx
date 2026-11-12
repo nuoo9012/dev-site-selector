@@ -3,7 +3,7 @@
 // 디자인: 부루마블 게임판 — 구 선택은 땅 타일, 소유구분은 말(토큰) 모양 버튼, 실행은 "주사위 굴리기" 버튼
 
 import type { RefObject } from "react";
-import { DEFAULT_CONDITIONS, DISTRICTS, OWNER_PRESETS, type OwnerPreset } from "@/lib/conditions";
+import { DEFAULT_CONDITIONS, DISTRICTS, LAND_SHAPES, OWNER_PRESETS, type OwnerPreset } from "@/lib/conditions";
 import { districtColor, shortDistrictName } from "@/lib/district-colors";
 import { describeConditions, textLength } from "@/lib/format";
 import { MAX_TEXT_LENGTH } from "@/lib/types";
@@ -27,6 +27,9 @@ interface Props {
   /** 기본 조건으로 실행할 때 쓸 구 (비어 있으면 서울 전체) */
   districts: string[];
   onDistrictsChange: (districts: string[]) => void;
+  /** 기본 조건으로 실행할 때 뺄 땅모양 (비어 있으면 땅모양은 따지지 않음) */
+  excludeShapes: string[];
+  onExcludeShapesChange: (shapes: string[]) => void;
   /** "다시 입력"에서 입력칸으로 돌아갈 때 쓴다 */
   textareaRef: RefObject<HTMLTextAreaElement | null>;
 }
@@ -43,7 +46,7 @@ function Dice() {
   );
 }
 
-export function ConditionPanel({ text, onTextChange, onConvert, converting, running, onRunDefault, ownerPreset, onOwnerPresetChange, districts, onDistrictsChange, textareaRef }: Props) {
+export function ConditionPanel({ text, onTextChange, onConvert, converting, running, onRunDefault, ownerPreset, onOwnerPresetChange, districts, onDistrictsChange, excludeShapes, onExcludeShapesChange, textareaRef }: Props) {
   const length = textLength(text.trim());
   const tooLong = length > MAX_TEXT_LENGTH;
   const canConvert = length >= 1 && !tooLong && !converting;
@@ -76,7 +79,7 @@ export function ConditionPanel({ text, onTextChange, onConvert, converting, runn
         />
         <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
           <p id="condition-text-help" className="text-xs text-[var(--ink-soft)]">
-            면적·지목·용도지역·소유구분·지역(구)(예: 강남구 국유지만)을 쓸 수 있어요. 말하지 않은 항목은 기본 조건을 써요. 입력한 문장은 조건을 해석하려고 OpenAI로 전송돼요. 개인정보는 적지 마세요.
+            면적·지목·용도지역·소유구분·지역(구)·땅모양 제외(예: 강남구 국유지, 부정형 제외)를 쓸 수 있어요. 말하지 않은 항목은 기본 조건을 써요. 입력한 문장은 조건을 해석하려고 OpenAI로 전송돼요. 개인정보는 적지 마세요.
           </p>
           <p className={`text-xs tabular-nums ${tooLong ? "font-bold text-[var(--coral)]" : "text-[var(--ink-soft)]"}`} aria-live="polite">
             {tooLong ? `${MAX_TEXT_LENGTH}자를 ${length - MAX_TEXT_LENGTH}자 넘었어요` : `${length} / ${MAX_TEXT_LENGTH}자`}
@@ -141,6 +144,32 @@ export function ConditionPanel({ text, onTextChange, onConvert, converting, runn
           </div>
           {ownerPreset !== "전체" && (
             <p className="mt-2 text-xs text-[var(--ink-soft)]">{OWNER_PRESETS[ownerPreset].join("·")} 소유인 필지만 골라요. 소유정보가 없는 필지는 “확인 필요”로 나와요.</p>
+          )}
+        </fieldset>
+
+        {/* 땅모양 제외: 고른 모양의 땅은 빼고 선별 (모양을 모르는 필지는 "확인 필요"로 나옴) */}
+        <fieldset className="mt-4">
+          <legend className="text-sm font-bold">
+            땅모양 제외 <span className="font-normal text-[var(--ink-soft)]">{excludeShapes.length === 0 ? "— 모양은 따지지 않음" : `— ${excludeShapes.join(", ")} 제외`}</span>
+          </legend>
+          <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="제외할 땅모양 선택">
+            {LAND_SHAPES.map((shape) => {
+              const selected = excludeShapes.includes(shape);
+              return (
+                <button
+                  key={shape}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => onExcludeShapesChange(selected ? excludeShapes.filter((x) => x !== shape) : [...excludeShapes, shape])}
+                  className="nb-chip nb-chip-toggle"
+                >
+                  {shape}
+                </button>
+              );
+            })}
+          </div>
+          {excludeShapes.length > 0 && (
+            <p className="mt-2 text-xs text-[var(--ink-soft)]">원본에 땅모양이 비어 있는 필지는 “확인 필요”로 나와요.</p>
           )}
         </fieldset>
 

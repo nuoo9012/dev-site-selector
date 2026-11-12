@@ -60,6 +60,8 @@ export function SelectorApp() {
   const [ownerPreset, setOwnerPreset] = useState<OwnerPreset>("전체");
   // 기본 조건으로 실행할 때 적용할 구 (비어 있으면 서울 전체)
   const [districts, setDistricts] = useState<string[]>([]);
+  // 기본 조건으로 실행할 때 뺄 땅모양 (비어 있으면 땅모양은 따지지 않음)
+  const [excludeShapes, setExcludeShapes] = useState<string[]>([]);
   const [parse, setParse] = useState<ParseState>({ status: "idle" });
   const [state, setState] = useState<RunState>({ status: "idle" });
   const [download, setDownload] = useState<DownloadState>({ status: "idle" });
@@ -152,6 +154,7 @@ export function SelectorApp() {
       ...DEFAULT_CONDITIONS,
       ...(owners.length > 0 ? { owners } : {}),
       ...(districts.length > 0 ? { districts } : {}),
+      ...(excludeShapes.length > 0 ? { excludeShapes } : {}),
     });
   }
 
@@ -214,6 +217,8 @@ export function SelectorApp() {
         onOwnerPresetChange={setOwnerPreset}
         districts={districts}
         onDistrictsChange={setDistricts}
+        excludeShapes={excludeShapes}
+        onExcludeShapesChange={setExcludeShapes}
         textareaRef={textareaRef}
       />
       <ConfirmCard

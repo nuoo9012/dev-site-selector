@@ -64,6 +64,10 @@ export interface Parcel {
   owners?: string[] | null;
   /** 국유지의 국가기관구분 (예: "중앙부처", "지자체"). 구분이 없으면 null */
   ownerAgency?: string | null;
+  /** 토지이용상황 (예: "단독", "상업용", "도로등") — 원본 A18. 값이 없으면 null */
+  landUse?: string | null;
+  /** 지형형상 (예: "부정형", "정방형") — 원본 A22. "지정되지않음"·빈 값이면 null */
+  landShape?: string | null;
 }
 
 /** 정리 파일의 부가 정보 */
@@ -95,10 +99,12 @@ export interface Conditions {
   owners?: string[];
   /** 허용 구 (예: ["강남구","서초구"]). 없거나 비어 있으면 서울 전체 */
   districts?: string[];
+  /** 제외할 땅모양(지형형상, 예: ["부정형"]). 없거나 비어 있으면 땅모양은 따지지 않는다 */
+  excludeShapes?: string[];
 }
 
 /** 비어 있을 수 있는 판정 항목 이름 */
-export type MissingField = "지목" | "면적" | "용도지역" | "소유구분";
+export type MissingField = "지목" | "면적" | "용도지역" | "소유구분" | "지형형상";
 
 /** 필지 한 건에 대한 판정 결과 */
 export type Judgement =

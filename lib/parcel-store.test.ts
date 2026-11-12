@@ -24,6 +24,8 @@ const row = (n: number) => ({
   zone2: null,
   owners: null,
   owner_agency: null,
+  land_use: null,
+  land_shape: null,
 });
 
 beforeEach(() => {
@@ -67,6 +69,8 @@ describe("findParcels", () => {
       zone2: null,
       owners: null,
       ownerAgency: null,
+      landUse: null,
+      landShape: null,
     });
   });
 
@@ -87,6 +91,23 @@ describe("findParcels", () => {
     const [sql, params] = query.mock.calls[0] as [string, unknown[]];
     expect(sql).toContain("sigungu = any($6::text[])");
     expect(params[5]).toEqual(["강남구", "서초구"]);
+  });
+
+  it("제외할 땅모양은 변수로 넘기고, 모양을 모르는 필지(null)는 빼지 않고 가져옴", async () => {
+    query.mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({ rows: [] });
+    await findParcels({ ...DEFAULT_CONDITIONS, excludeShapes: ["부정형"] });
+    await findParcels(DEFAULT_CONDITIONS);
+    const [sql, withShape] = query.mock.calls[0] as [string, unknown[]];
+    expect(sql).toContain("land_shape is null or not (land_shape = any($7::text[]))");
+    expect(withShape[6]).toEqual(["부정형"]);
+    expect((query.mock.calls[1] as [string, unknown[]])[1][6]).toEqual([]);
+  });
+
+  it("DB의 토지이용상황·지형형상이 필지에 담김", async () => {
+    query.mockResolvedValueOnce({ rows: [{ ...row(4), land_use: "상업용", land_shape: "정방형" }] });
+    const [parcel] = await findParcels(DEFAULT_CONDITIONS);
+    expect(parcel.landUse).toBe("상업용");
+    expect(parcel.landShape).toBe("정방형");
   });
 
   it("DB의 소유구분·국가기관이 필지에 담김", async () => {

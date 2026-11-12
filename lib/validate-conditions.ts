@@ -3,7 +3,7 @@
 // 서버 쪽 코드(API)에서 쓴다. 화면에서 가볍게 쓰는 기본 조건은 conditions.ts에 따로 둔다.
 
 import { z } from "zod";
-import { DISTRICTS, LAND_CATEGORIES, OWNER_CATEGORIES, ZONES } from "./conditions";
+import { DISTRICTS, LAND_CATEGORIES, LAND_SHAPES, OWNER_CATEGORIES, ZONES } from "./conditions";
 import type { Conditions } from "./types";
 
 // 면적 상한: 이 값을 넘는 조건은 실수로 보고 거절한다 (영등포·도봉 최대 필지보다 훨씬 큼)
@@ -34,6 +34,11 @@ export const conditionsSchema = z.object(
       .array(z.enum(DISTRICTS, "지원하지 않는 지역이에요. 서울 25개 구 중에서 골라 주세요."), "지역은 목록으로 보내 주세요.")
       .max(DISTRICTS.length * 2, "지역이 너무 많아요.")
       .optional(),
+    // 제외할 땅모양은 선택 사항이다. 없거나 비어 있으면 땅모양은 따지지 않는다.
+    excludeShapes: z
+      .array(z.enum(LAND_SHAPES, "지원하지 않는 땅모양이에요."), "땅모양은 목록으로 보내 주세요.")
+      .max(LAND_SHAPES.length * 2, "땅모양이 너무 많아요.")
+      .optional(),
   },
   "조건은 { minArea, landCategories, zones } 모양으로 보내 주세요.",
 );
@@ -53,7 +58,8 @@ export function validateConditions(input: unknown): ConditionsValidation {
     const messages = [...new Set(parsed.error.issues.map((issue) => issue.message))].slice(0, 3);
     return { ok: false, message: messages.join(" ") };
   }
-  const { minArea, landCategories, zones, owners, districts } = parsed.data;
+  const { minArea, landCategories, zones, owners, districts, excludeShapes } = parsed.data;
+  const uniqueShapes = excludeShapes ? [...new Set(excludeShapes)] : [];
   const uniqueOwners = owners ? [...new Set(owners)] : [];
   const uniqueDistricts = districts ? [...new Set(districts)] : [];
   return {
@@ -65,6 +71,7 @@ export function validateConditions(input: unknown): ConditionsValidation {
       // 소유구분을 고르지 않았으면 이 항목을 아예 넣지 않는다 (이전과 같은 모양 유지)
       ...(uniqueOwners.length > 0 ? { owners: uniqueOwners } : {}),
       ...(uniqueDistricts.length > 0 ? { districts: uniqueDistricts } : {}),
+      ...(uniqueShapes.length > 0 ? { excludeShapes: uniqueShapes } : {}),
     },
   };
 }

@@ -34,6 +34,9 @@ export function judgeParcel(parcel: Parcel, conditions: Conditions): Judgement {
   if (landCategory !== null && !conditions.landCategories.includes(landCategory)) return { result: "exclude" };
   if (area !== null && area < conditions.minArea) return { result: "exclude" };
   if (zone1 !== null && !conditions.zones.includes(zone1)) return { result: "exclude" };
+  // 땅모양 제외: 모양을 아는 필지가 제외 대상 모양이면 제외 (모양을 모르는 필지는 아래에서 확인 필요)
+  const excludedShapes = conditions.excludeShapes ?? [];
+  if (excludedShapes.length > 0 && parcel.landShape && excludedShapes.includes(parcel.landShape)) return { result: "exclude" };
   // 소유구분: 필지의 소유구분 중 하나라도 원하는 구분이면 해당(공유 지분 포함). 하나도 아니면 제외
   const wantedOwners = conditions.owners ?? [];
   if (wantedOwners.length > 0 && parcel.owners && !parcel.owners.some((o) => wantedOwners.includes(o))) return { result: "exclude" };
@@ -45,6 +48,8 @@ export function judgeParcel(parcel: Parcel, conditions: Conditions): Judgement {
   if (zone1 === null) missing.push("용도지역");
   // 소유구분을 조건으로 걸었는데 소유정보가 없는 필지는 추측하지 않고 확인 필요로 둔다
   if (wantedOwners.length > 0 && !parcel.owners) missing.push("소유구분");
+  // 땅모양 제외 조건을 걸었는데 모양을 모르는 필지는 추측하지 않고 확인 필요로 둔다
+  if (excludedShapes.length > 0 && !parcel.landShape) missing.push("지형형상");
   if (missing.length) return { result: "unknown", missing };
 
   // 3. 모두 맞음

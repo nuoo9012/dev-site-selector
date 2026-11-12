@@ -9,7 +9,7 @@ import { MAX_TEXT_LENGTH } from "./types";
 
 // 값만 바꿔 쓰는 AI 결과 (기본: 아무것도 말하지 않은 ok)
 function ai(overrides: Partial<AiResult> = {}): AiResult {
-  return { status: "ok", minArea: null, landCategories: null, zones: null, owners: null, districts: null, message: "", ...overrides };
+  return { status: "ok", minArea: null, landCategories: null, zones: null, owners: null, districts: null, excludeShapes: null, message: "", ...overrides };
 }
 
 describe("validateText — 1~200자 검사", () => {
@@ -183,5 +183,21 @@ describe("interpretAiResult — 지역(구) (서울 확장 후 추가)", () => {
   it("지역을 말하지 않으면 conditions에 districts가 없음", () => {
     const r = interpretAiResult(ai({ minArea: 2000 }));
     expect(r.status === "ok" && "districts" in r.conditions).toBe(false);
+  });
+});
+
+describe("interpretAiResult — 땅모양 제외 (지형형상 추가 후)", () => {
+  it("'부정형 빼고'처럼 땅모양만 말해도 조건이 되고, 안내에 땅모양 제외가 들어감", () => {
+    const r = interpretAiResult(ai({ excludeShapes: ["부정형"] }));
+    expect(r.status).toBe("ok");
+    if (r.status !== "ok") return;
+    expect(r.conditions).toEqual({ ...DEFAULT_CONDITIONS, excludeShapes: ["부정형"] });
+    expect(r.defaulted).toEqual(["minArea", "landCategories", "zones"]);
+    expect(r.message).toContain("땅모양 부정형 제외");
+  });
+
+  it("땅모양을 말하지 않으면 conditions에 excludeShapes가 없음", () => {
+    const r = interpretAiResult(ai({ minArea: 2000 }));
+    expect(r.status === "ok" && "excludeShapes" in r.conditions).toBe(false);
   });
 });

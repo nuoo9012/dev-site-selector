@@ -43,6 +43,9 @@ export function judge(c: ConditionCase, r: ParseConditionResponse | "error"): { 
   const gotOwners = r.conditions.owners ?? [];
   const wantOwners = expected.owners ?? [];
   if (!sameSet(gotOwners, wantOwners)) problems.push(`소유구분 ${gotOwners.join(",") || "(없음)"} (기대 ${wantOwners.join(",") || "(없음)"})`);
+  const gotShapes = r.conditions.excludeShapes ?? [];
+  const wantShapes = expected.excludeShapes ?? [];
+  if (!sameSet(gotShapes, wantShapes)) problems.push(`땅모양 제외 ${gotShapes.join(",") || "(없음)"} (기대 ${wantShapes.join(",") || "(없음)"})`);
   const gotDistricts = r.conditions.districts ?? [];
   const wantDistricts = expected.districts ?? [];
   if (!sameSet(gotDistricts, wantDistricts)) problems.push(`지역 ${gotDistricts.join(",") || "(없음)"} (기대 ${wantDistricts.join(",") || "(없음)"})`);
