@@ -3,6 +3,7 @@
 // 디자인: 후보(초록)·확인 필요(노랑) 숫자 카드 + 노란 머리글 표
 
 import Image from "next/image";
+import { naverMapUrl } from "@/lib/map-link";
 import { ownerText } from "@/lib/owner-text";
 import { DISCLAIMER, formatConditions } from "@/lib/format";
 import { MAX_DISPLAY_ROWS, type Conditions } from "@/lib/types";
@@ -98,13 +99,15 @@ function Body({ state, download, onDownload }: Props) {
               화면에는 상위 {MAX_DISPLAY_ROWS}건만 보여요. 전체는 엑셀로 받으세요.
             </p>
           )}
+          <p className="text-xs text-[var(--ink-soft)]">‘지도’를 누르면 네이버지도가 새 창으로 열려요. 열린 뒤 왼쪽의 ‘위성’을 누르면 위성사진을 볼 수 있어요.</p>
           <div className="nb-table-wrap max-h-[70vh]">
-            <table className="w-full min-w-[1160px] border-collapse text-left text-sm">
+            <table className="w-full min-w-[1240px] border-collapse text-left text-sm">
               <caption className="sr-only">
                 개발 대상지 후보 목록 (면적이 큰 순서, 상위 {result.candidates.length}건)
               </caption>
               <thead className="sticky top-0 text-xs whitespace-nowrap">
                 <tr>
+                  <th scope="col" className="px-3 py-2 font-bold">지도</th>
                   <th scope="col" className="min-w-[210px] px-3 py-2 font-bold">주소</th>
                   <th scope="col" className="px-3 py-2 font-bold">지번</th>
                   <th scope="col" className="px-3 py-2 font-bold">지목</th>
@@ -119,6 +122,18 @@ function Body({ state, download, onDownload }: Props) {
               <tbody>
                 {result.candidates.map((c) => (
                   <tr key={c.pnu}>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <a
+                        href={naverMapUrl(c.address, c.jibun)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`${c.address} ${c.jibun} 네이버지도에서 보기 (새 창)`}
+                        title="네이버지도에서 보기 (열린 뒤 '위성'을 누르면 위성사진)"
+                        className="nb-chip nb-chip-link"
+                      >
+                        지도
+                      </a>
+                    </td>
                     <td className="px-3 py-2 whitespace-nowrap">{c.address}</td>
                     <td className="px-3 py-2 whitespace-nowrap">{c.jibun}</td>
                     <td className="px-3 py-2 whitespace-nowrap">{c.landCategory}</td>

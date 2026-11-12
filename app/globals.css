@@ -123,6 +123,18 @@ button.nb-tile[aria-pressed="true"] {
   color: #fff;
 }
 
+/* 표 안의 작은 링크 버튼 (지도 보기) */
+.nb-chip-link {
+  padding: 2px 12px;
+  font-size: 13px;
+  text-decoration: none;
+  background: var(--blue);
+  color: #fff;
+}
+.nb-chip-link:hover {
+  background: #3b8fd4;
+}
+
 /* 땅모양 제외처럼 켜고 끄는 말 버튼 (눌려 있으면 산호색) */
 .nb-chip-toggle[aria-pressed="true"] {
   background: var(--coral);
