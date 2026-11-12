@@ -18,41 +18,18 @@
 }
 
 body {
-  background: var(--background);
-  /* 배경 그림 두 겹(::before, ::after)을 글씨 뒤에 깔기 위해 새 쌓임 층을 만든다 */
-  isolation: isolate;
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgb(255 106 31 / 0.14), transparent 60%),
+    radial-gradient(700px 500px at -10% 10%, rgb(160 170 185 / 0.1), transparent 60%),
+    var(--background);
+  background-attachment: fixed;
   color: var(--foreground);
   /* 부드러운 글꼴: 고운돋움(layout.tsx에서 불러옴) → 없으면 설치된 한글 글꼴 순서대로 */
   font-family:
     var(--font-body), "Gowun Dodum", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-/* 페이지 전체 배경: 귀여운 서울 부루마블 그림을 은은하게 깔고, 그 위에 어두운 막과 주황 빛을 덮는다.
-   화면이 스크롤되어도 배경은 그대로 있고(fixed), 글씨가 잘 읽히도록 막을 충분히 짙게 둔다. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: -12px; /* 흐림 효과 때문에 생기는 가장자리 틈을 가린다 */
-  z-index: -2;
-  background: url("/seoul-board.webp") center / cover no-repeat;
-  filter: blur(2px) saturate(1.2);
-  opacity: 0.95;
-  pointer-events: none;
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background:
-    radial-gradient(900px 520px at 88% -8%, rgb(255 106 31 / 0.2), transparent 62%),
-    radial-gradient(800px 560px at -8% 8%, rgb(255 180 138 / 0.08), transparent 60%),
-    linear-gradient(180deg, rgb(18 18 18 / 0.5) 0%, rgb(18 18 18 / 0.66) 55%, rgb(18 18 18 / 0.82) 100%);
-  pointer-events: none;
-}
-
-/* 움직임을 줄이고 싶은 사용자 설정을 존중한다 (배경은 정지 그림이라 영향 없음) */
+/* 움직임을 줄이고 싶은 사용자 설정을 존중한다 */
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
