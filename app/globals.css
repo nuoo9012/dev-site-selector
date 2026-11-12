@@ -1,32 +1,228 @@
 @import "tailwindcss";
 
-/* 디자인 방향: 짙은 숯색 바탕 + 큰 둥근 모서리 + 반투명 카드 + 주황 포인트 (motionsites의 'Axle Journey' 같은 느낌) */
-/* 항상 어두운 화면으로 쓴다: <html class="dark">일 때 dark: 스타일이 적용된다 */
-@custom-variant dark (&:where(.dark, .dark *));
+/* 디자인: 귀여운 서울 부루마블 게임판
+   크림색 바탕 + 굵은 남색 테두리 + 스티커 같은 그림자 + 땅 타일 색 띠 + 주황·산호 포인트 */
 
 :root {
-  --background: #121212;
-  --foreground: #f2f2f0;
-  --accent: #ff6a1f;
-  color-scheme: dark;
+  --ink: #2b2a5a; /* 남색: 글씨와 모든 테두리 */
+  --ink-soft: #6b6a8f; /* 보조 글씨 */
+  --cream: #fff1bf; /* 페이지 바탕 */
+  --paper: #fff9e3; /* 게임판 바탕 */
+  --field: #fffdf2; /* 입력칸 바탕 */
+  --orange: #ff6a1f; /* 포인트 */
+  --coral: #f25f4c; /* 실행 버튼 */
+  --blue: #4da3e8;
+  --green: #66bb6a;
+  --yellow: #ffd54f;
+  --yellow-soft: #ffe08a;
+  --background: var(--cream);
+  --foreground: var(--ink);
+  color-scheme: light;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-accent: var(--accent);
+  --color-ink: var(--ink);
+  --color-accent: var(--orange);
 }
 
 body {
-  background:
-    radial-gradient(900px 500px at 85% -10%, rgb(255 106 31 / 0.14), transparent 60%),
-    radial-gradient(700px 500px at -10% 10%, rgb(160 170 185 / 0.1), transparent 60%),
-    var(--background);
-  background-attachment: fixed;
-  color: var(--foreground);
+  background-color: var(--cream);
+  /* 은은한 점 무늬 */
+  background-image: radial-gradient(#f4d97a 1.4px, transparent 1.4px);
+  background-size: 22px 22px;
+  color: var(--ink);
   /* 부드러운 글꼴: 고운돋움(layout.tsx에서 불러옴) → 없으면 설치된 한글 글꼴 순서대로 */
   font-family:
     var(--font-body), "Gowun Dodum", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* 제목 글꼴 (주아) */
+.nb-jua {
+  font-family: var(--font-title), "Jua", "Gowun Dodum", "Malgun Gothic", sans-serif;
+  font-weight: 400;
+}
+
+/* ───── 게임판 / 카드 ───── */
+.nb-board {
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 22px;
+  box-shadow: 5px 5px 0 var(--ink);
+}
+
+.nb-card {
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.nb-card-flat {
+  background: #fff;
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+}
+
+/* ───── 땅 타일 (구 선택·장식) ───── */
+.nb-tile {
+  display: block;
+  border: 2.5px solid var(--ink);
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.1;
+  color: var(--ink);
+  transition: transform 0.12s ease;
+}
+.nb-tile > i {
+  display: block;
+  height: 7px;
+  border-bottom: 2.5px solid var(--ink);
+}
+.nb-tile > span {
+  display: block;
+  padding: 6px 2px 7px;
+  white-space: nowrap;
+}
+button.nb-tile {
+  cursor: pointer;
+}
+button.nb-tile:hover {
+  transform: translateY(-2px);
+}
+button.nb-tile[aria-pressed="true"] {
+  box-shadow: 0 0 0 3px var(--orange);
+  transform: translateY(-2px);
+  background: #fff3e6;
+  font-weight: 700;
+}
+
+/* ───── 말(토큰) 모양 선택 버튼 ───── */
+.nb-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2.5px solid var(--ink);
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 14px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+.nb-chip:hover {
+  transform: translateY(-2px);
+}
+.nb-chip[aria-checked="true"] {
+  background: var(--orange);
+  color: #fff;
+}
+
+/* ───── 버튼 ───── */
+.nb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 8px 22px;
+  min-height: 44px;
+  font-size: 16px;
+  color: #fff;
+  background: var(--coral);
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.nb-btn:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.nb-btn:active:not(:disabled) {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--ink);
+}
+.nb-btn:disabled {
+  background: #d9d6c8;
+  color: #8d8a7a;
+  cursor: not-allowed;
+  box-shadow: 3px 3px 0 #a9a590;
+  border-color: #a9a590;
+}
+.nb-btn-ghost {
+  background: #fff;
+  color: var(--ink);
+}
+.nb-btn-small {
+  min-height: 38px;
+  padding: 4px 16px;
+  font-size: 14px;
+}
+
+/* ───── 입력칸 ───── */
+.nb-input {
+  width: 100%;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  background: var(--field);
+  color: var(--ink);
+  padding: 10px 14px;
+  font-size: 15px;
+  resize: vertical;
+}
+.nb-input::placeholder {
+  color: var(--ink-soft);
+}
+.nb-input[aria-invalid="true"] {
+  border-color: var(--coral);
+}
+
+/* ───── 안내 상자 ───── */
+.nb-alert {
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+.nb-alert-error {
+  background: #ffe3e0;
+}
+.nb-alert-warn {
+  background: #fff3c4;
+}
+.nb-alert-info {
+  background: #e3f1ff;
+}
+
+/* ───── 결과 숫자 카드 ───── */
+.nb-stat {
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 var(--ink);
+  padding: 8px 12px;
+}
+
+/* ───── 표 ───── */
+.nb-table-wrap {
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  overflow: auto;
+  background: #fff;
+}
+.nb-table-wrap thead {
+  background: var(--yellow-soft);
+}
+.nb-table-wrap tbody tr {
+  border-top: 1.5px solid #e3dcb5;
+}
+.nb-table-wrap tbody tr:hover {
+  background: #fff7d6;
 }
 
 /* 움직임을 줄이고 싶은 사용자 설정을 존중한다 */
@@ -35,4 +231,10 @@ body {
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* 키보드로 이동할 때 보이는 표시 */
+:focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: 2px;
 }
