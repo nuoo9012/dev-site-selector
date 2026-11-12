@@ -4,23 +4,43 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/check-data.mjs",
     "build": "next build",
+    "check:data": "node scripts/check-data.mjs",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "eval:conditions": "vitest run --config vitest.eval.config.mts evals/condition-accuracy.eval.ts",
+    "eval:recheck": "vitest run --config vitest.eval.config.mts evals/condition-recheck.eval.ts",
+    "eval:external": "vitest run --config vitest.eval.config.mts evals/external-check.eval.ts",
+    "eval:sample": "vitest run --config vitest.eval.config.mts evals/sample-accuracy.eval.ts",
+    "inspect:raw": "node scripts/inspect-raw.mts",
+    "load:db": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/load-db.mts",
+    "check:db": "node scripts/db-check.mjs",
+    "load:owners": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/load-owners.mts"
   },
   "dependencies": {
+    "exceljs": "^4.4.0",
     "next": "16.4.6",
+    "openai": "^7.55.0",
+    "pg": "^8.23.1",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "4.3.3",
-    "@types/node": "^20",
+    "@types/node": "^24.19.2",
+    "@types/papaparse": "^5.5.2",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
+    "iconv-lite": "^0.7.3",
+    "papaparse": "^5.7.1",
     "tailwindcss": "4.3.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.1.0"
   }
 }

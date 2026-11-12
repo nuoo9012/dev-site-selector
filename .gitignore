@@ -39,3 +39,22 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 지울 파일을 임시로 옮겨 두는 폴더
+/trash-can/
+
+# 코딩 도우미 플러그인(bkit) 작업 기록 폴더
+/.bkit/
+
+# 원본 토지특성정보 CSV (용량이 커서 커밋하지 않음, 정리본 data/parcels.json만 커밋)
+/data/raw/
+
+.vercel
+.env*
+
+# 변수 이름만 적은 예시 파일은 커밋한다 (비밀 값은 없음). 위의 .env* 보다 뒤에 있어야 효과가 있다
+!.env.example
+
+# Claude Code 작업 메모리·Supabase CLI 임시 파일 (커밋하지 않음)
+/.claude/agent-memory/
+/supabase/.temp/
