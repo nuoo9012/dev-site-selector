@@ -68,6 +68,10 @@ export interface Parcel {
   landUse?: string | null;
   /** 지형형상 (예: "부정형", "정방형") — 원본 A22. "지정되지않음"·빈 값이면 null */
   landShape?: string | null;
+  /** 개별공시지가 (원/㎡) — 원본 A25. 0 이하·빈 값이면 null */
+  landPrice?: number | null;
+  /** 공시지가 기준연도 (예: 2026) — 원본 A8. 모르면 null */
+  landPriceYear?: number | null;
 }
 
 /** 정리 파일의 부가 정보 */

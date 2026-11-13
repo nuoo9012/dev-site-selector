@@ -18,6 +18,8 @@ export const COL = {
   zone2: "A16", // 용도지역명2
   landUse: "A18", // 토지이용상황명
   landShape: "A22", // 지형형상명
+  landPrice: "A25", // 개별공시지가 (원/㎡)
+  priceYear: "A8", // 공시지가 기준연도
   baseDate: "A26", // 데이터기준일자
 } as const;
 
@@ -99,6 +101,18 @@ export function areaOrNull(value: string | undefined): number | null {
   return n > 0 ? Math.round(n * 100) / 100 : null;
 }
 
+// 공시지가: 숫자로 바꾸고 0 이하·숫자 아님은 null (원/㎡, 소수는 반올림)
+export function priceOrNull(value: string | undefined): number | null {
+  const n = parseFloat(value ?? "");
+  return n > 0 ? Math.round(n) : null;
+}
+
+// 기준연도: 4자리 연도만 인정
+export function yearOrNull(value: string | undefined): number | null {
+  const v = (value ?? "").trim();
+  return /^\d{4}$/.test(v) ? Number(v) : null;
+}
+
 // 지번: 산이면 앞에 "산 "을 붙인다. 특수지구분명이 비어 있으면 고유번호 11번째 자리(2 = 산)로 판단
 export function makeJibun(rec: Record<string, string>): string {
   const special = rec[COL.special] ?? "";
@@ -124,6 +138,8 @@ export function toParcel(rec: Record<string, string>): { parcel: Parcel; baseDat
       zone2: textOrNull(rec[COL.zone2]),
       landUse: textOrNull(rec[COL.landUse]),
       landShape: textOrNull(rec[COL.landShape]),
+      landPrice: priceOrNull(rec[COL.landPrice]),
+      landPriceYear: yearOrNull(rec[COL.priceYear]),
     },
     baseDate: rec[COL.baseDate] ?? "",
   };

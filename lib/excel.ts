@@ -1,11 +1,12 @@
 // 선별 결과를 엑셀 파일로 만든다 (PLAN 작업 11)
 // Design Ref: §3.4 — 두 시트 모두 상단 1~3행에 적용 조건·구별 기준일·안내 문구, 그 아래 표
-//   · "후보 목록" 시트: 주소 · 지번 · 지목 · 면적 · 용도지역 · 소유구분 · 토지이용상황 · 지형형상 · 선별 근거
-//   · "확인 필요" 시트: 주소 · 지번 · 지목 · 면적 · 용도지역 · 소유구분 · 토지이용상황 · 지형형상 · 비어 있는 항목
+//   · "후보 목록" 시트: 주소 · 지번 · 지목 · 면적 · 용도지역 · 소유구분 · 토지이용상황 · 지형형상 · 공시지가 · 토지가액 · 선별 근거
+//   · "확인 필요" 시트: 주소 · 지번 · 지목 · 면적 · 용도지역 · 소유구분 · 토지이용상황 · 지형형상 · 공시지가 · 토지가액 · 비어 있는 항목
 // 서버 쪽 코드(API)에서만 쓴다. 화면에 보이는 500건 제한 없이 전체 건수를 담는다 (PRD must ②).
 
 import ExcelJS from "exceljs";
 import { DISCLAIMER, formatBaseDates, formatConditions } from "./format";
+import { landValue } from "./land-value";
 import { ownerText } from "./owner-text";
 import type { BaseDates, Conditions, Parcel, SelectionResult } from "./types";
 
@@ -31,7 +32,7 @@ interface Column {
   width: number;
 }
 
-// 두 시트가 같은 앞 8열을 쓰고 마지막 열만 다르다 (Design Ref: §3.4)
+// 두 시트가 같은 앞 10열을 쓰고 마지막 열만 다르다 (Design Ref: §3.4)
 const SHARED_COLUMNS: Column[] = [
   { header: "주소", width: 34 },
   { header: "지번", width: 12 },
@@ -41,11 +42,13 @@ const SHARED_COLUMNS: Column[] = [
   { header: "소유구분", width: 18 },
   { header: "토지이용상황", width: 14 },
   { header: "지형형상", width: 12 },
+  { header: "공시지가(원/㎡)", width: 16 },
+  { header: "토지가액(원)", width: 20 },
 ];
 
-// 필지 한 건의 앞 8칸 값. 값이 없으면 null → 빈 칸 (엑셀에 "null"이 보이지 않게)
+// 필지 한 건의 앞 10칸 값. 값이 없으면 null → 빈 칸 (엑셀에 "null"이 보이지 않게)
 function parcelCells(p: Parcel): (string | number | null)[] {
-  return [p.address, p.jibun, p.landCategory, p.area, p.zone1, ownerText(p), p.landUse ?? null, p.landShape ?? null];
+  return [p.address, p.jibun, p.landCategory, p.area, p.zone1, ownerText(p), p.landUse ?? null, p.landShape ?? null, p.landPrice ?? null, landValue(p)];
 }
 
 function addSheet(
@@ -76,7 +79,7 @@ function addSheet(
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE4E4E7" } };
     cell.border = { bottom: { style: "thin" } };
     // 면적 열은 숫자라서 머리글도 오른쪽 정렬
-    if (col.header.startsWith("면적")) cell.alignment = { horizontal: "right" };
+    if (col.header.startsWith("면적") || col.header.startsWith("공시지가") || col.header.startsWith("토지가액")) cell.alignment = { horizontal: "right" };
   });
 
   // 표 내용
@@ -89,6 +92,8 @@ function addSheet(
       if (i === 3 && typeof value === "number") {
         cell.numFmt = Number.isInteger(value) ? "#,##0" : "#,##0.0#";
       }
+      // 공시지가(9번째)·토지가액(10번째)은 원 단위 정수 (숫자 값 그대로 유지)
+      if ((i === 8 || i === 9) && typeof value === "number") cell.numFmt = "#,##0";
     });
   });
 

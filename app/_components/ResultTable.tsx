@@ -3,6 +3,7 @@
 // 디자인: 후보(초록)·확인 필요(노랑) 숫자 카드 + 노란 머리글 표
 
 import Image from "next/image";
+import { landValue, LAND_VALUE_NOTE } from "@/lib/land-value";
 import { naverMapUrl } from "@/lib/map-link";
 import { ownerText } from "@/lib/owner-text";
 import { DISCLAIMER, formatConditions } from "@/lib/format";
@@ -101,7 +102,7 @@ function Body({ state, download, onDownload }: Props) {
           )}
           <p className="text-xs text-[var(--ink-soft)]">‘지도’를 누르면 네이버지도가 새 창으로 열려요. 열린 뒤 왼쪽의 ‘위성’을 누르면 위성사진을 볼 수 있어요.</p>
           <div className="nb-table-wrap max-h-[70vh]">
-            <table className="w-full min-w-[1240px] border-collapse text-left text-sm">
+            <table className="w-full min-w-[1500px] border-collapse text-left text-sm">
               <caption className="sr-only">
                 개발 대상지 후보 목록 (면적이 큰 순서, 상위 {result.candidates.length}건)
               </caption>
@@ -116,6 +117,8 @@ function Body({ state, download, onDownload }: Props) {
                   <th scope="col" className="min-w-[130px] px-3 py-2 font-bold">소유구분</th>
                   <th scope="col" className="px-3 py-2 font-bold">토지이용상황</th>
                   <th scope="col" className="px-3 py-2 font-bold">지형형상</th>
+                  <th scope="col" className="px-3 py-2 text-right font-bold">공시지가(원/㎡)</th>
+                  <th scope="col" className="px-3 py-2 text-right font-bold">토지가액(원)</th>
                   <th scope="col" className="min-w-[260px] px-3 py-2 font-bold">선별 근거</th>
                 </tr>
               </thead>
@@ -142,6 +145,8 @@ function Body({ state, download, onDownload }: Props) {
                     <td className="px-3 py-2">{ownerText(c) ?? "-"}</td>
                     <td className="px-3 py-2 whitespace-nowrap">{c.landUse ?? "-"}</td>
                     <td className="px-3 py-2 whitespace-nowrap">{c.landShape ?? "-"}</td>
+                    <td className="px-3 py-2 text-right whitespace-nowrap tabular-nums">{c.landPrice != null ? c.landPrice.toLocaleString("ko-KR") : "-"}</td>
+                    <td className="px-3 py-2 text-right whitespace-nowrap tabular-nums">{landValue(c)?.toLocaleString("ko-KR") ?? "-"}</td>
                     <td className="px-3 py-2 text-[var(--ink-soft)]">{c.reason}</td>
                   </tr>
                 ))}
@@ -151,6 +156,7 @@ function Body({ state, download, onDownload }: Props) {
         </>
       )}
 
+      <p className="text-xs text-[var(--ink-soft)]">{LAND_VALUE_NOTE}</p>
       <p className="text-xs text-[var(--ink-soft)]">{DISCLAIMER}</p>
     </div>
   );

@@ -26,6 +26,8 @@ const row = (n: number) => ({
   owner_agency: null,
   land_use: null,
   land_shape: null,
+  land_price: null,
+  land_price_year: null,
 });
 
 beforeEach(() => {
@@ -71,6 +73,8 @@ describe("findParcels", () => {
       ownerAgency: null,
       landUse: null,
       landShape: null,
+      landPrice: null,
+      landPriceYear: null,
     });
   });
 
@@ -118,6 +122,17 @@ describe("findParcels", () => {
     const [parcel] = await findParcels(DEFAULT_CONDITIONS);
     expect(parcel.landUse).toBe("상업용");
     expect(parcel.landShape).toBe("정방형");
+  });
+
+  it("DB의 공시지가·기준연도가 필지에 담김 (선별용 조회와 주소 검색 모두 같은 열을 가져옴)", async () => {
+    query.mockResolvedValueOnce({ rows: [{ ...row(5), land_price: 884000, land_price_year: 2026 }] });
+    const [parcel] = await findParcels(DEFAULT_CONDITIONS);
+    expect(parcel.landPrice).toBe(884000);
+    expect(parcel.landPriceYear).toBe(2026);
+    expect((query.mock.calls[0] as [string])[0]).toContain("land_price, land_price_year");
+    query.mockResolvedValueOnce({ rows: [{ ...row(6), land_price: 1200000, land_price_year: 2026 }] });
+    await findByAddress({ patterns: ["%동%"], jibun: "6" }, 10);
+    expect((query.mock.calls[1] as [string])[0]).toContain("land_price, land_price_year");
   });
 
   it("DB의 소유구분·국가기관이 필지에 담김", async () => {

@@ -40,9 +40,9 @@ async function roundTrip(input: ExcelInput): Promise<ExcelJS.Workbook> {
   return wb;
 }
 
-// 한 줄을 값 배열로 읽는다 (빈 칸은 null, 9칸까지)
+// 한 줄을 값 배열로 읽는다 (빈 칸은 null, 11칸까지)
 function rowValues(sheet: ExcelJS.Worksheet, rowNumber: number): (string | number | null)[] {
-  return [1, 2, 3, 4, 5, 6, 7, 8, 9].map((c) => {
+  return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((c) => {
     const v = sheet.getRow(rowNumber).getCell(c).value;
     return v === null || v === undefined ? null : (v as string | number);
   });
@@ -75,8 +75,8 @@ describe("buildExcel — 시트 구성", () => {
 
   it("표 머리글이 5행에 있고 시트마다 마지막 열만 다름", async () => {
     const wb = await roundTrip(inputFrom([parcel()]));
-    expect(rowValues(wb.getWorksheet(SHEET_CANDIDATES)!, 5)).toEqual(["주소", "지번", "지목", "면적(㎡)", "용도지역", "소유구분", "토지이용상황", "지형형상", "선별 근거"]);
-    expect(rowValues(wb.getWorksheet(SHEET_NEEDS_CHECK)!, 5)).toEqual(["주소", "지번", "지목", "면적(㎡)", "용도지역", "소유구분", "토지이용상황", "지형형상", "비어 있는 항목"]);
+    expect(rowValues(wb.getWorksheet(SHEET_CANDIDATES)!, 5)).toEqual(["주소", "지번", "지목", "면적(㎡)", "용도지역", "소유구분", "토지이용상황", "지형형상", "공시지가(원/㎡)", "토지가액(원)", "선별 근거"]);
+    expect(rowValues(wb.getWorksheet(SHEET_NEEDS_CHECK)!, 5)).toEqual(["주소", "지번", "지목", "면적(㎡)", "용도지역", "소유구분", "토지이용상황", "지형형상", "공시지가(원/㎡)", "토지가액(원)", "비어 있는 항목"]);
   });
 });
 
@@ -94,6 +94,8 @@ describe("buildExcel — 후보 목록 시트", () => {
       null, // 소유정보가 없으면 빈 칸
       null, // 토지이용상황이 없으면 빈 칸
       null, // 지형형상이 없으면 빈 칸
+      null, // 공시지가가 없으면 빈 칸
+      null, // 토지가액도 빈 칸
       "면적 1,523.4㎡(≥1,000) · 지목 대 · 준주거지역 (일부 일반상업지역 걸침)",
     ]);
     expect(typeof sheet.getRow(6).getCell(4).value).toBe("number");
@@ -110,7 +112,7 @@ describe("buildExcel — 후보 목록 시트", () => {
     const wb = await roundTrip(inputFrom([parcel({ area: 1200 }), parcel({ area: 3000 }), parcel({ area: 2000 })]));
     const sheet = wb.getWorksheet(SHEET_CANDIDATES)!;
     expect([6, 7, 8].map((r) => sheet.getRow(r).getCell(4).value)).toEqual([3000, 2000, 1200]);
-    expect([6, 7, 8].every((r) => String(sheet.getRow(r).getCell(9).value ?? "").length > 0)).toBe(true);
+    expect([6, 7, 8].every((r) => String(sheet.getRow(r).getCell(11).value ?? "").length > 0)).toBe(true);
     expect(sheet.getRow(9).getCell(1).value).toBeNull(); // 그 아래는 비어 있음
   });
 
@@ -135,13 +137,13 @@ describe("buildExcel — 확인 필요 시트", () => {
     const empty = parcel({ landCategory: null, area: null, zone1: null });
     const wb = await roundTrip(inputFrom([empty]));
     const sheet = wb.getWorksheet(SHEET_NEEDS_CHECK)!;
-    expect(rowValues(sheet, 6)).toEqual([empty.address, empty.jibun, null, null, null, null, null, null, "지목, 면적, 용도지역"]);
+    expect(rowValues(sheet, 6)).toEqual([empty.address, empty.jibun, null, null, null, null, null, null, null, null, "지목, 면적, 용도지역"]);
   });
 
   it("일부만 비면 그 항목만 적히고 있는 값은 그대로 보임", async () => {
     const p = parcel({ area: null });
     const wb = await roundTrip(inputFrom([p]));
-    expect(rowValues(wb.getWorksheet(SHEET_NEEDS_CHECK)!, 6)).toEqual([p.address, p.jibun, "대", null, "준주거지역", null, null, null, "면적"]);
+    expect(rowValues(wb.getWorksheet(SHEET_NEEDS_CHECK)!, 6)).toEqual([p.address, p.jibun, "대", null, "준주거지역", null, null, null, null, null, "면적"]);
   });
 
   it("후보와 확인 필요가 서로 다른 시트에 나뉘어 들어감", async () => {
@@ -206,7 +208,7 @@ describe("buildExcel — 소유구분", () => {
     expect(sheet.getRow(7).getCell(6).value).toBe("국유지·개인");
     expect(sheet.getCell("A1").value).toBe("적용 조건: 면적 1,000㎡ 이상 · 지목 대 · 용도지역 일반상업지역, 준주거지역, 제3종일반주거지역 · 소유구분 국유지");
     expect(sheet.getCell("A2").value).toBe("데이터 기준일 2026-05-13 · 소유구분 기준일 2026-10-28");
-    expect(String(sheet.getRow(6).getCell(9).value)).toContain("소유 국유지(중앙부처)");
+    expect(String(sheet.getRow(6).getCell(11).value)).toContain("소유 국유지(중앙부처)");
   });
 });
 
@@ -228,6 +230,30 @@ describe("buildExcel — 토지이용상황·지형형상 (땅모양 추가 후)
     const wb = await roundTrip({ conditions, result: selectParcels([known, unknownShape], conditions), baseDates: sameDates });
     const sheet = wb.getWorksheet(SHEET_CANDIDATES)!;
     expect(String(sheet.getCell("A1").value)).toContain("땅모양 제외 부정형");
-    expect(rowValues(wb.getWorksheet(SHEET_NEEDS_CHECK)!, 6)[8]).toBe("지형형상");
+    expect(rowValues(wb.getWorksheet(SHEET_NEEDS_CHECK)!, 6)[10]).toBe("지형형상");
+  });
+});
+
+describe("buildExcel — 공시지가·토지가액 (공시지가 추가 후)", () => {
+  it("공시지가(9번째)와 토지가액(10번째)이 숫자로 들어가고, 토지가액 = 공시지가 × 면적(원 단위 반올림)", async () => {
+    const p = parcel({ area: 1523.4, landPrice: 884000 });
+    const wb = await roundTrip(inputFrom([p]));
+    const sheet = wb.getWorksheet(SHEET_CANDIDATES)!;
+    expect(sheet.getRow(6).getCell(9).value).toBe(884000);
+    expect(sheet.getRow(6).getCell(10).value).toBe(Math.round(884000 * 1523.4));
+    expect(typeof sheet.getRow(6).getCell(10).value).toBe("number");
+    expect(sheet.getRow(6).getCell(10).numFmt).toBe("#,##0");
+  });
+
+  it("공시지가가 없으면 공시지가·토지가액 둘 다 빈 칸 (계산하지 않음)", async () => {
+    const wb = await roundTrip(inputFrom([parcel({ landPrice: null })]));
+    const row = rowValues(wb.getWorksheet(SHEET_CANDIDATES)!, 6);
+    expect(row.slice(8, 10)).toEqual([null, null]);
+  });
+
+  it("확인 필요 시트에도 같은 칸에 들어가고, 면적이 없으면 토지가액만 빈 칸", async () => {
+    const wb = await roundTrip(inputFrom([parcel({ area: null, landPrice: 500000 })]));
+    const row = rowValues(wb.getWorksheet(SHEET_NEEDS_CHECK)!, 6);
+    expect(row.slice(8, 10)).toEqual([500000, null]);
   });
 });

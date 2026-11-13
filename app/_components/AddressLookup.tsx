@@ -4,6 +4,7 @@
 // 선별 조건과는 별개로 동작한다. 찾은 필지는 네이버지도 새 창으로도 열 수 있다.
 
 import { useRef, useState } from "react";
+import { formatWon, formatWonApprox, landValue, LAND_VALUE_NOTE } from "@/lib/land-value";
 import { naverMapUrl } from "@/lib/map-link";
 import { ownerText } from "@/lib/owner-text";
 import type { ApiError, LookupResponse } from "@/lib/types";
@@ -122,11 +123,22 @@ export function AddressLookup() {
                   <dd className="font-bold">{p.landUse ?? EMPTY}</dd>
                   <dt className="text-[var(--ink-soft)]">지형형상</dt>
                   <dd className="font-bold">{p.landShape ?? EMPTY}</dd>
+                  <dt className="text-[var(--ink-soft)]">공시지가</dt>
+                  <dd className="font-bold tabular-nums">
+                    {p.landPrice != null ? `${formatWon(p.landPrice)}/㎡` : EMPTY}
+                    {p.landPrice != null && p.landPriceYear != null && <span className="font-normal text-[var(--ink-soft)]"> ({p.landPriceYear}년)</span>}
+                  </dd>
+                  <dt className="text-[var(--ink-soft)]">토지가액</dt>
+                  <dd className="font-bold tabular-nums">
+                    {formatWon(landValue(p)) ?? EMPTY}
+                    {formatWonApprox(landValue(p)) && <span className="font-normal text-[var(--ink-soft)]"> ({formatWonApprox(landValue(p))})</span>}
+                  </dd>
                   <dt className="text-[var(--ink-soft)]">고유번호</dt>
                   <dd className="tabular-nums text-[var(--ink-soft)]">{p.pnu}</dd>
                 </dl>
               </article>
             ))}
+            <p className="text-xs text-[var(--ink-soft)]">{LAND_VALUE_NOTE}</p>
           </div>
         )}
       </div>

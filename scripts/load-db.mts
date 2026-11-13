@@ -33,8 +33,12 @@ create table if not exists parcels (
   owners         text[],
   owner_agency   text,
   land_use       text,
-  land_shape     text
+  land_shape     text,
+  land_price     double precision,
+  land_price_year integer
 );
+alter table parcels add column if not exists land_price double precision;
+alter table parcels add column if not exists land_price_year integer;
 alter table parcels add column if not exists land_use text;
 alter table parcels add column if not exists land_shape text;
 alter table parcels add column if not exists owners text[];
@@ -64,11 +68,12 @@ alter table parcel_meta enable row level security;
 
 async function insertBatch(client: pg.Client, rows: Parcel[]) {
   await client.query(
-    `insert into parcels (pnu, sigungu, address, jibun, land_category, area, zone1, zone2, land_use, land_shape)
-     select * from unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::float8[], $7::text[], $8::text[], $9::text[], $10::text[])
+    `insert into parcels (pnu, sigungu, address, jibun, land_category, area, zone1, zone2, land_use, land_shape, land_price, land_price_year)
+     select * from unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::float8[], $7::text[], $8::text[], $9::text[], $10::text[], $11::float8[], $12::int[])
      on conflict (pnu) do update set sigungu = excluded.sigungu, address = excluded.address, jibun = excluded.jibun,
        land_category = excluded.land_category, area = excluded.area, zone1 = excluded.zone1, zone2 = excluded.zone2,
-       land_use = excluded.land_use, land_shape = excluded.land_shape`,
+       land_use = excluded.land_use, land_shape = excluded.land_shape,
+       land_price = excluded.land_price, land_price_year = excluded.land_price_year`,
     [
       rows.map((r) => r.pnu),
       rows.map((r) => r.sigungu),
@@ -80,6 +85,8 @@ async function insertBatch(client: pg.Client, rows: Parcel[]) {
       rows.map((r) => r.zone2),
       rows.map((r) => r.landUse ?? null),
       rows.map((r) => r.landShape ?? null),
+      rows.map((r) => r.landPrice ?? null),
+      rows.map((r) => r.landPriceYear ?? null),
     ],
   );
 }

@@ -30,6 +30,8 @@ interface Row {
   owner_agency: string | null;
   land_use: string | null;
   land_shape: string | null;
+  land_price: number | null;
+  land_price_year: number | null;
 }
 
 const toParcel = (r: Row): Parcel => ({
@@ -45,6 +47,8 @@ const toParcel = (r: Row): Parcel => ({
   ownerAgency: r.owner_agency,
   landUse: r.land_use,
   landShape: r.land_shape,
+  landPrice: r.land_price,
+  landPriceYear: r.land_price_year,
 });
 
 /** 접속 실패 등 DB 문제는 원래 내용을 숨기고 DbError로 바꾼다 */
@@ -62,7 +66,7 @@ function logAndWrap(error: unknown): never {
 export async function findParcels(conditions: Conditions): Promise<Parcel[]> {
   try {
     const result = await getPool().query<Row>(
-      `select pnu, sigungu, address, jibun, land_category, area, zone1, zone2, owners, owner_agency, land_use, land_shape
+      `select pnu, sigungu, address, jibun, land_category, area, zone1, zone2, owners, owner_agency, land_use, land_shape, land_price, land_price_year
          from parcels
         where (land_category is null or land_category = any($1::text[]))
           and (area is null or area >= $2)
@@ -90,7 +94,7 @@ export async function findParcels(conditions: Conditions): Promise<Parcel[]> {
 export async function findByAddress(query: { patterns: string[]; jibun: string }, limit: number): Promise<{ parcels: Parcel[]; truncated: boolean }> {
   try {
     const result = await getPool().query<Row>(
-      `select pnu, sigungu, address, jibun, land_category, area, zone1, zone2, owners, owner_agency, land_use, land_shape
+      `select pnu, sigungu, address, jibun, land_category, area, zone1, zone2, owners, owner_agency, land_use, land_shape, land_price, land_price_year
          from parcels
         where replace(jibun, ' ', '') = $1
           and address ilike all($2::text[])
