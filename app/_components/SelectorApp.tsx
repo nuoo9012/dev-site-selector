@@ -7,6 +7,7 @@ import { useRef, useState } from "react";
 import { DEFAULT_CONDITIONS, OWNER_PRESETS, type OwnerPreset } from "@/lib/conditions";
 import { textLength } from "@/lib/format";
 import { MAX_TEXT_LENGTH, type ApiError, type Conditions, type ParseConditionResponse, type SelectResponse } from "@/lib/types";
+import { AddressLookup } from "./AddressLookup";
 import { ConditionPanel } from "./ConditionPanel";
 import { ConfirmCard } from "./ConfirmCard";
 import { ResultTable } from "./ResultTable";
@@ -224,6 +225,7 @@ export function SelectorApp() {
 
   return (
     <>
+      <AddressLookup />
       <ConditionPanel
         text={text}
         onTextChange={changeText}

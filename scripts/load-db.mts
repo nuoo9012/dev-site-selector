@@ -49,6 +49,8 @@ create table if not exists source_meta (
 alter table source_meta enable row level security;
 create index if not exists parcels_filter_idx on parcels (land_category, zone1, area);
 create index if not exists parcels_sigungu_idx on parcels (sigungu);
+-- 주소로 필지 찾기(공백 뺀 지번으로 비교)를 빠르게 한다
+create index if not exists parcels_jibun_key_idx on parcels ((replace(jibun, ' ', '')));
 create table if not exists parcel_meta (
   sigungu     text primary key,
   base_date   date not null,

@@ -176,6 +176,7 @@ export type ApiErrorCode =
   | "TEXT_TOO_LONG"
   | "AI_UNAVAILABLE"
   | "AI_BAD_RESPONSE"
+  | "INVALID_QUERY" // 주소 검색어를 해석하지 못함
   | "DB_UNAVAILABLE" // 데이터베이스에 연결하지 못함
   | "TOO_MANY_RESULTS"; // 조건이 너무 넓어 결과가 상한을 넘음
 
@@ -183,6 +184,17 @@ export type ApiErrorCode =
 export interface ApiError {
   error: { code: ApiErrorCode; message: string };
 }
+
+/** POST /api/lookup 응답 — 주소로 찾은 필지 (선별 조건과 상관없이 필지 정보를 그대로 보여준다) */
+export interface LookupResponse {
+  /** 찾은 필지 (최대 LOOKUP_LIMIT건) */
+  parcels: Parcel[];
+  /** 더 있는데 잘렸는지 */
+  truncated: boolean;
+}
+
+/** 주소 검색 결과를 한 번에 보여주는 최대 건수 */
+export const LOOKUP_LIMIT = 10;
 
 /** 선별 결과 — 후보와 확인 필요를 나눠 담는다 (PRD must ① 규칙 7) */
 export interface SelectionResult {

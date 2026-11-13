@@ -11,7 +11,7 @@ vi.mock("./db", async (importOriginal) => {
 });
 
 import { DbError } from "./db";
-import { findParcels, getSummary, MAX_FETCH_ROWS, TooManyResultsError } from "./parcel-store";
+import { findByAddress, findParcels, getSummary, MAX_FETCH_ROWS, TooManyResultsError } from "./parcel-store";
 
 const row = (n: number) => ({
   pnu: `1156010100100${String(n).padStart(6, "0")}`,
@@ -166,5 +166,37 @@ describe("getSummary", () => {
     });
     expect(await getSummary()).toBe(first);
     expect(query).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("findByAddress (주소로 필지 찾기)", () => {
+  it("지번과 주소 조각을 변수로 넘기고(SQL에 섞지 않음) 한 건 더 요청한다", async () => {
+    query.mockResolvedValueOnce({ rows: [row(913)] });
+    await findByAddress({ patterns: ["%송파구%", "%가락동%"], jibun: "913" }, 10);
+    const [sql, params] = query.mock.calls[0] as [string, unknown[]];
+    expect(sql).toContain("replace(jibun, ' ', '') = $1");
+    expect(sql).toContain("address ilike all($2::text[])");
+    expect(sql).not.toContain("송파구");
+    expect(params).toEqual(["913", ["%송파구%", "%가락동%"], 11]);
+  });
+
+  it("결과를 필지 모양으로 바꿔 주고, 상한 이하면 truncated가 아님", async () => {
+    query.mockResolvedValueOnce({ rows: [{ ...row(913), land_use: "아파트", land_shape: "가로장방" }] });
+    const r = await findByAddress({ patterns: ["%가락동%"], jibun: "913" }, 10);
+    expect(r.truncated).toBe(false);
+    expect(r.parcels).toHaveLength(1);
+    expect(r.parcels[0].landUse).toBe("아파트");
+  });
+
+  it("상한보다 많이 찾으면 상한까지만 돌려주고 truncated", async () => {
+    query.mockResolvedValueOnce({ rows: Array.from({ length: 11 }, (_, i) => row(i)) });
+    const r = await findByAddress({ patterns: ["%동%"], jibun: "1" }, 10);
+    expect(r.parcels).toHaveLength(10);
+    expect(r.truncated).toBe(true);
+  });
+
+  it("DB 오류는 DbError로 바꾼다", async () => {
+    query.mockRejectedValueOnce(new Error("boom"));
+    await expect(findByAddress({ patterns: ["%동%"], jibun: "1" }, 10)).rejects.toBeInstanceOf(DbError);
   });
 });

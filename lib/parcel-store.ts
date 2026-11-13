@@ -81,6 +81,29 @@ export async function findParcels(conditions: Conditions): Promise<Parcel[]> {
   }
 }
 
+/**
+ * 지번 주소로 필지를 찾는다. 선별 조건과 상관없이 필지의 모든 정보를 돌려준다.
+ *  - 지번은 공백을 뺀 글자로 비교하고("산 89-2" → "산89-2"), 주소는 낱말 조각이 모두 들어 있어야 한다.
+ *  - 값은 모두 변수(파라미터)로 넘긴다. 조각에는 LIKE 특수 글자가 없다(address-search.ts가 지움).
+ *  - 한 건 더 요청해서 "더 있는지"만 알아낸다.
+ */
+export async function findByAddress(query: { patterns: string[]; jibun: string }, limit: number): Promise<{ parcels: Parcel[]; truncated: boolean }> {
+  try {
+    const result = await getPool().query<Row>(
+      `select pnu, sigungu, address, jibun, land_category, area, zone1, zone2, owners, owner_agency, land_use, land_shape
+         from parcels
+        where replace(jibun, ' ', '') = $1
+          and address ilike all($2::text[])
+        order by address, pnu
+        limit $3`,
+      [query.jibun, query.patterns, limit + 1],
+    );
+    return { parcels: result.rows.slice(0, limit).map(toParcel), truncated: result.rows.length > limit };
+  } catch (error) {
+    return logAndWrap(error);
+  }
+}
+
 export interface ParcelSummary {
   /** 구별 원본 데이터 기준일 */
   baseDates: BaseDates;
